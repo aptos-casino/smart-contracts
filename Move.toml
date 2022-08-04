@@ -1,0 +1,9 @@
+[package]
+name = "Casino"
+version = "0.0.0"
+
+[addresses]
+CasinoAddress = "_"
+
+[dependencies]
+AptosFramework = { local = "../../framework/aptos-framework" }
