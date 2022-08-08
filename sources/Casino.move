@@ -1,28 +1,42 @@
 module Casino {
     use std::string;
+    use aptos_framework::system_addresses;
+
+    const GAME_STATE_EMPTY: u8 = 0;
+    const GAME_STATE_STARTED: u8 = 1;
+    const GAME_STATE_ENDED: u8 = 2;
 
     struct StartedGameEvent has drop, store {
         client_seed_hash: u128,
-        betAmount: u64,
+        bet_amount: u64,
         game_id: u64,
     }
 
-    struct ApprovedBackendHashesEvent has drop, store {
-        successful: bool
+    struct InitedBackendSeedHashesEvent has drop, store {
+        hash: u128
     }
 
-    struct ApprovedClientHashesEvent has drop, store {
-        successful: bool
+    struct InitedClientSeedHashesEvent has drop, store {
+        hash: u128
     }
 
-    struct DroppedDiceEvent has drop, store {
-        number: u64,
+    struct InitedBackendSeedEvent has drop, store {
+        seed: u128
+    }
+
+    struct InitedClientSeedEvent has drop, store {
+        seed: u128
+    }
+
+    struct CompletedGameEvent has drop, store {
+        lucky_number: u64,
         payout: u64,
         game_id: u64,
-        betAmount: u64,
+        bet_amount: u64,
+        player_addr: address,
     }
 
-    struct Casino{
+    struct GameState{
         game_id: u64,
         client_seed: u128,
         client_seed_hash: u128,
@@ -32,27 +46,31 @@ module Casino {
     	lucky_number: u8,
     	bet_amount: u64,
     	payout: u64,
-    	multiplier: u64,
-    	currency: string::String,
+        game_state: u8,
         start_game_event: EventHandle<StartGameEvent>,
         approved_backend_hashes_event: EventHandle<ApprovedBackendHashesEvent>,
         approved_client_hashes_event: EventHandle<ApprovedClientHashesEvent>,
         start_game_event: EventHandle<DroppedDiceEvent>,
     }
     
-    create_game
-    check_backend_seed_hash
-    check_client_seed_hash
-    check_sign
-    generate_lucky_number
+    public fun start_roll(bet_amount: u64, client_seed_hash: u128, prediction: u8)
+    {
 
+    }
 
-    start_roll
-    set_prediction
-    get_prediction
-    set_bet_amount
-    get_payout
-    set_currency
-    get_lucky_num
-    
+    public fun get_backend_seed_hash(game_id: u64)
+    {
+
+    }
+    public fun get_client_seed_hash(game_id: u64)
+    {
+
+    }
+
+   
+    public fun get_game_state(game_id: u64): GameState
+    {
+
+    }
+
 }
