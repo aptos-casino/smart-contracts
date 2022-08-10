@@ -1,4 +1,4 @@
-module 0x1234::Casino {
+module CasinoAddress::Casino {
     use aptos_std::event;
     use std::signer;
     use std::vector;
