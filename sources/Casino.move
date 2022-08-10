@@ -63,7 +63,7 @@ module CasinoAddress::Casino {
         inited_client_seed_event: event::EventHandle<InitedClientSeedEvent>,
     }
 
-    public fun start_roll(player: signer, bet_amount: u64, client_seed_hash: vector<u8>, prediction: u8): u128
+    public entry fun start_roll(player: signer, bet_amount: u64, client_seed_hash: vector<u8>, prediction: u8)
     acquires EventsStore {
         let creator_addr = signer::address_of(&player);
         let start_game_event = &mut borrow_global_mut<EventsStore>(creator_addr).start_game_event;
@@ -73,11 +73,9 @@ module CasinoAddress::Casino {
             bet_amount,
             game_id: 5151,
         });
-
-        5151
     }
 
-    public fun set_backend_seed(backend: signer, game_id: u64, seed: vector<u8>)
+    public entry fun set_backend_seed(backend: signer, game_id: u64, seed: vector<u8>)
     acquires EventsStore {
         let creator_addr = signer::address_of(&backend);
         let inited_backend_seed_event = &mut borrow_global_mut<EventsStore>(creator_addr).inited_backend_seed_event;
@@ -87,7 +85,7 @@ module CasinoAddress::Casino {
         });
     }
 
-    public fun set_backend_seed_hash(backend: signer, game_id: u64, seed_hash: vector<u8>)
+    public entry fun set_backend_seed_hash(backend: signer, game_id: u64, seed_hash: vector<u8>)
     acquires EventsStore {
         let creator_addr = signer::address_of(&backend);
         let inited_backend_seed_hashes_event = &mut borrow_global_mut<EventsStore>(creator_addr).inited_backend_seed_hashes_event;
@@ -97,7 +95,7 @@ module CasinoAddress::Casino {
         });
     }
 
-    public fun set_client_seed(player: signer, game_id: u64, seed: vector<u8>)
+    public entry fun set_client_seed(player: signer, game_id: u64, seed: vector<u8>)
     acquires EventsStore {
         let creator_addr = signer::address_of(&player);
         let inited_client_seed_event = &mut borrow_global_mut<EventsStore>(creator_addr).inited_client_seed_event;
@@ -107,7 +105,7 @@ module CasinoAddress::Casino {
         });
     }
 
-    public fun set_client_seed_hash(backend: signer, game_id: u64, seed_hash: vector<u8>)
+    public entry fun set_client_seed_hash(backend: signer, game_id: u64, seed_hash: vector<u8>)
     acquires EventsStore {
         let creator_addr = signer::address_of(&backend);
         let inited_client_seed_hashes_event = &mut borrow_global_mut<EventsStore>(creator_addr).inited_client_seed_hashes_event;
