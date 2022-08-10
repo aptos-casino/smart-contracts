@@ -3,8 +3,6 @@ module CasinoAddress::Casino {
     use std::signer;
     use std::vector;
 
-    native fun create_address(bytes: vector<u8>): address;
-
     const GAME_STATE_EMPTY: u8 = 0;
     const GAME_STATE_STARTED: u8 = 1;
     const GAME_STATE_ENDED: u8 = 2;
@@ -125,7 +123,7 @@ module CasinoAddress::Casino {
         vector::push_back(&mut vec, 2);
         vector::push_back(&mut vec, 3);
         GameState {
-            player: create_address(x"0000000000000000000000000000000000000000000000000000000000000b0b"),
+            player: @0x0000000000000000000000000000000000000000000000000000000000000b0b,
             client_seed: copy vec,
             client_seed_hash: copy vec,
             backend_seed: copy vec,
