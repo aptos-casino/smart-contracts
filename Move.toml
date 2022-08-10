@@ -6,4 +6,4 @@ version = "0.0.0"
 CasinoAddress = "_"
 
 [dependencies]
-AptosFramework = { local = "../../framework/aptos-framework" }
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework/", rev = "aptos-cli-v0.2.3" }
