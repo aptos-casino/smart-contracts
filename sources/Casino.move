@@ -66,8 +66,8 @@ module CasinoAddress::Casino {
     }
 
     public entry fun initialize(account: &signer) {
-        let sende_address = signer::address_of(account);
-        assert!(sende_address == @CasinoAddress, ERR_ONLY_OWNER);
+        let sender_address = signer::address_of(account);
+        assert!(sender_address == @CasinoAddress, ERR_ONLY_OWNER);
         if (!exists<EventsStore>(signer::address_of(account))) {
             move_to(
                 account,
