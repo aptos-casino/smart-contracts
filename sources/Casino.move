@@ -13,11 +13,11 @@ module Casino {
         game_id: u64,
     }
 
-    struct InitedBackendSeedHashesEvent has drop, store {
+    struct InitedBackendSeedHashEvent has drop, store {
         hash: u128
     }
 
-    struct InitedClientSeedHashesEvent has drop, store {
+    struct InitedClientSeedHashEvent has drop, store {
         hash: u128
     }
 
@@ -39,8 +39,10 @@ module Casino {
 
     struct GameEvents has key{
         start_game_event: event::EventHandle<StartGameEvent>,
-        approved_backend_hashes_event: event::EventHandle<ApprovedBackendHashesEvent>,
-        approved_client_hashes_event: event::EventHandle<ApprovedClientHashesEvent>,
+        inited_backend_seed_event: event::EventHandle<InitedBackendSeedEvent>,
+        inited_client_seed_event: event::EventHandle<InitedClientSeedEvent>,
+        inited_backend_seed_hash_event: event::EventHandle<InitedBackendSeedHashEvent>,
+        inited_client_seed_hash_event: event::EventHandle<InitedClientSeedHashEvent>,
         start_game_event: event::EventHandle<DroppedDiceEvent>
     }
 
@@ -80,37 +82,48 @@ module Casino {
     acquires GameState, GameEvents{
         let state = borrow_global<GameState>(player_addr);
         let game_events = borrow_global_mut<GameEvents>(player_addr);
-        event::emit_event<InitedBackendSeedHashesEvent>(
-            &mut game_events.start_game_event,
-            InitedBackendSeedHashesEvent {
-                client_seed_hash,
-                state.bet_amount,
-                state.game_id,
+        event::emit_event<InitedBackendSeedHashEvent>(
+            &mut game_events.inited_backend_seed_hash_event,
+            InitedBackendSeedHashEvent {
+                state.backend_seed_hash,
             },
-        );
-
-        InitedBackendSeedHashesEvent
-        
+        );        
     }
 
     public fun get_client_seed_hash(game_id: u64)
     acquires GameState, GameEvents{
-        InitedClientSeedHashesEvent
-        
+        let state = borrow_global<GameState>(player_addr);
+        let game_events = borrow_global_mut<GameEvents>(player_addr);
+        event::emit_event<InitedClientSeedHashEvent>(
+            &mut game_events.inited_client_seed_hash_event,
+            InitedClientSeedHashEvent {
+                state.client_seed_hash,
+            },
+        );
     }
 
     public fun get_backend_seed(game_id: u64)
     acquires GameState, GameEvents{
-
-
-        
-        InitedBackendSeedEvent
+        let state = borrow_global<GameState>(player_addr);
+        let game_events = borrow_global_mut<GameEvents>(player_addr);
+        event::emit_event<InitedBackendSeedEvent>(
+            &mut game_events.inited_backend_seed_event,
+            InitedBackendSeedEvent {
+                state.backend_seed,
+            },
+        );
     }
 
     public fun get_client_seed(game_id: u64)
     acquires GameState, GameEvents{
-        
-        InitedClientSeedEvent
+        let state = borrow_global<GameState>(player_addr);
+        let game_events = borrow_global_mut<GameEvents>(player_addr);
+        event::emit_event<InitedClientSeedEvent>(
+            &mut game_events.inited_client_seed_event,
+            InitedClientSeedEvent {
+                state.client_seed,
+            },
+        );
     }
    
     public fun get_game_state(game_id: u64): GameState {
