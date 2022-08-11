@@ -7,6 +7,8 @@ module CasinoAddress::Casino {
     const GAME_STATE_STARTED: u8 = 1;
     const GAME_STATE_ENDED: u8 = 2;
 
+    const ERR_ONLY_OWNER: u64 = 0;
+
     struct StartedGameEvent has drop, store {
         player: address,
         client_seed_hash: vector<u8>,
@@ -63,10 +65,27 @@ module CasinoAddress::Casino {
         inited_client_seed_event: event::EventHandle<InitedClientSeedEvent>,
     }
 
+    public entry fun initialize(account: &signer) {
+        let sende_address = signer::address_of(account);
+        assert!(sende_address == @CasinoAddress, ERR_ONLY_OWNER);
+        if (!exists<EventsStore>(signer::address_of(account))) {
+            move_to(
+                account,
+                EventsStore {
+                    start_game_event: event::new_event_handle<StartedGameEvent>(account),
+                    inited_backend_seed_hashes_event: event::new_event_handle<InitedBackendSeedHashesEvent>(account),
+                    inited_client_seed_hashes_event: event::new_event_handle<InitedClientSeedHashesEvent>(account),
+                    inited_backend_seed_event: event::new_event_handle<InitedBackendSeedEvent>(account),
+                    inited_client_seed_event: event::new_event_handle<InitedClientSeedEvent>(account),
+                },
+            );
+        }
+    }
+
     public entry fun start_roll(player: signer, bet_amount: u64, client_seed_hash: vector<u8>, prediction: u8)
     acquires EventsStore {
         let creator_addr = signer::address_of(&player);
-        let start_game_event = &mut borrow_global_mut<EventsStore>(creator_addr).start_game_event;
+        let start_game_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).start_game_event;
         event::emit_event(start_game_event, StartedGameEvent {
             player: creator_addr,
             client_seed_hash,
@@ -77,8 +96,7 @@ module CasinoAddress::Casino {
 
     public entry fun set_backend_seed(backend: signer, game_id: u64, seed: vector<u8>)
     acquires EventsStore {
-        let creator_addr = signer::address_of(&backend);
-        let inited_backend_seed_event = &mut borrow_global_mut<EventsStore>(creator_addr).inited_backend_seed_event;
+        let inited_backend_seed_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).inited_backend_seed_event;
         event::emit_event(inited_backend_seed_event, InitedBackendSeedEvent {
             seed,
             game_id,
@@ -87,8 +105,7 @@ module CasinoAddress::Casino {
 
     public entry fun set_backend_seed_hash(backend: signer, game_id: u64, seed_hash: vector<u8>)
     acquires EventsStore {
-        let creator_addr = signer::address_of(&backend);
-        let inited_backend_seed_hashes_event = &mut borrow_global_mut<EventsStore>(creator_addr).inited_backend_seed_hashes_event;
+        let inited_backend_seed_hashes_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).inited_backend_seed_hashes_event;
         event::emit_event(inited_backend_seed_hashes_event, InitedBackendSeedHashesEvent {
             hash: seed_hash,
             game_id,
@@ -97,8 +114,7 @@ module CasinoAddress::Casino {
 
     public entry fun set_client_seed(player: signer, game_id: u64, seed: vector<u8>)
     acquires EventsStore {
-        let creator_addr = signer::address_of(&player);
-        let inited_client_seed_event = &mut borrow_global_mut<EventsStore>(creator_addr).inited_client_seed_event;
+        let inited_client_seed_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).inited_client_seed_event;
         event::emit_event(inited_client_seed_event, InitedClientSeedEvent {
             seed,
             game_id,
@@ -107,8 +123,7 @@ module CasinoAddress::Casino {
 
     public entry fun set_client_seed_hash(backend: signer, game_id: u64, seed_hash: vector<u8>)
     acquires EventsStore {
-        let creator_addr = signer::address_of(&backend);
-        let inited_client_seed_hashes_event = &mut borrow_global_mut<EventsStore>(creator_addr).inited_client_seed_hashes_event;
+        let inited_client_seed_hashes_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).inited_client_seed_hashes_event;
         event::emit_event(inited_client_seed_hashes_event, InitedClientSeedHashesEvent {
             hash: seed_hash,
             game_id,
