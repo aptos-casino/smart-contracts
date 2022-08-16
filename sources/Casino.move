@@ -129,23 +129,4 @@ module CasinoAddress::Casino {
             game_id,
         });
     }
-
-    public fun get_game_state(game_id: u64): GameState {
-        let vec = vector::empty<u8>();
-        vector::push_back(&mut vec, 1);
-        vector::push_back(&mut vec, 2);
-        vector::push_back(&mut vec, 3);
-        GameState {
-            player: @0x0000000000000000000000000000000000000000000000000000000000000b0b,
-            client_seed: copy vec,
-            client_seed_hash: copy vec,
-            backend_seed: copy vec,
-            backend_seed_hash: copy vec,
-            prediction: 45,
-            lucky_number: 33,
-            bet_amount: 515145,
-            payout: 53453,
-            game_state: GAME_STATE_STARTED,
-        }
-    }
 }
