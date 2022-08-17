@@ -103,6 +103,15 @@ module CasinoAddress::Casino {
             seed,
             game_id,
         });
+
+        let completed_game_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).completed_game_event;
+        event::emit_event(completed_game_event, CompletedGameEvent {
+            lucky_number: 123,
+            payout: 123,
+            game_id: 123,
+            bet_amount: 123,
+            player_addr: @0x1234,
+        });
     }
 
     public entry fun set_backend_seed_hash(backend: signer, game_id: u64, seed_hash: vector<u8>)
@@ -129,14 +138,6 @@ module CasinoAddress::Casino {
         event::emit_event(inited_client_seed_hashes_event, InitedClientSeedHashesEvent {
             hash: seed_hash,
             game_id,
-        });
-        let completed_game_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).completed_game_event;
-        event::emit_event(completed_game_event, CompletedGameEvent {
-            lucky_number: 123,
-            payout: 123,
-            game_id: 123,
-            bet_amount: 123,
-            player_addr: @0x1234,
         });
     }
 }
