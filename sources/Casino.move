@@ -98,12 +98,6 @@ module CasinoAddress::Casino {
 
     public entry fun set_backend_seed(backend: signer, game_id: u64, seed: vector<u8>)
     acquires EventsStore {
-        let inited_backend_seed_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).inited_backend_seed_event;
-        event::emit_event(inited_backend_seed_event, InitedBackendSeedEvent {
-            seed,
-            game_id,
-        });
-
         let completed_game_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).completed_game_event;
         event::emit_event(completed_game_event, CompletedGameEvent {
             lucky_number: 123,
@@ -111,6 +105,12 @@ module CasinoAddress::Casino {
             game_id: 123,
             bet_amount: 123,
             player_addr: @0x1234,
+        });
+
+        let inited_backend_seed_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).inited_backend_seed_event;
+        event::emit_event(inited_backend_seed_event, InitedBackendSeedEvent {
+            seed,
+            game_id,
         });
     }
 
