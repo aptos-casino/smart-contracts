@@ -91,39 +91,31 @@ module CasinoAddress::Casino {
         }
     }
     
-    public entry fun start_roll(bet_amount: u64, client_seed_hash: vector<u8>, prediction: u8)
-    acquires GameEvents, GameStateController{
-        let addr = @CasinoAddress;
-        let game_events = borrow_global_mut<GameEvents>(addr);
-        let states = borrow_global_mut<GameStateController>(addr);
-        let roll_num = 0;//todo
-        let pay = 0;//todo
+    // public entry fun start_roll(bet_amount: u64, client_seed_hash: vector<u8>, prediction: u8)
+    // acquires GameEvents, GameStateController{
+    //     let account_addr = signer::address_of(account);
+    //     let game_events = borrow_global_mut<GameEvents>(account_addr);
+    //     let states = borrow_global_mut<GameStateController>(account_addr);
 
-        let state = GameState{
-            client_seed: vector::empty(),
-            client_seed_hash: client_seed_hash,
-            backend_seed: vector::empty()
-            backend_seed_hash: vector::empty(),
-            prediction: prediction,
-            lucky_number: roll_num,
-            bet_amount: bet_amount,
-            payout: pay,
-            game_state: GAME_STATE_STARTED,
-        };
+    //     let state = GameState{
+    //         bet_amount: bet_amount,
+    //         client_seed_hash: client_seed_hash,
+    //         prediction: prediction,
+    //         game_state: GAME_STATE_STARTED,
+    //     }
         
-        vector::push_back(states.games, state);
-        let len = vector::length(states.games);
+    //     vector::push_back(states.games, state);
 
-        event::emit_event<StartedGameEvent>(
-            &mut game_events.start_game_event,
-            StartedGameEvent {
-                addr,
-                client_seed_hash,
-                bet_amount,
-                len,
-            },
-        );
-    }
+    //     event::emit_event<StartedGameEvent>(
+    //         &mut game_events.start_game_event,
+    //         StartedGameEvent {
+    //             account_addr,
+    //             client_seed_hash,
+    //             bet_amount,
+    //             vector::length(states.games),
+    //         },
+    //     );
+    // }
 
     // public fun set_backend_seed(game_id: u64, seed: vector<u8>)
     // acquires GameEvents, GameStateController {
