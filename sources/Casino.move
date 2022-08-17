@@ -63,6 +63,7 @@ module CasinoAddress::Casino {
         inited_client_seed_hashes_event: event::EventHandle<InitedClientSeedHashesEvent>,
         inited_backend_seed_event: event::EventHandle<InitedBackendSeedEvent>,
         inited_client_seed_event: event::EventHandle<InitedClientSeedEvent>,
+        completed_game_event: event::EventHandle<CompletedGameEvent>,
     }
 
     public entry fun initialize(account: &signer) {
@@ -77,6 +78,7 @@ module CasinoAddress::Casino {
                     inited_client_seed_hashes_event: event::new_event_handle<InitedClientSeedHashesEvent>(account),
                     inited_backend_seed_event: event::new_event_handle<InitedBackendSeedEvent>(account),
                     inited_client_seed_event: event::new_event_handle<InitedClientSeedEvent>(account),
+                    completed_game_event: event::new_event_handle<CompletedGameEvent>(account),
                 },
             );
         }
@@ -127,6 +129,14 @@ module CasinoAddress::Casino {
         event::emit_event(inited_client_seed_hashes_event, InitedClientSeedHashesEvent {
             hash: seed_hash,
             game_id,
+        });
+        let completed_game_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).completed_game_event;
+        event::emit_event(completed_game_event, CompletedGameEvent {
+            lucky_number: 123,
+            payout: 123,
+            game_id: 123,
+            bet_amount: 123,
+            player_addr: @0x1234,
         });
     }
 }
