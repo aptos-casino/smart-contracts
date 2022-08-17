@@ -44,7 +44,7 @@ module CasinoAddress::Casino {
         player_addr: address,
     }
 
-    struct GameState {
+    struct GameState has drop, store {
         player: address,
         client_seed: vector<u8>,
         client_seed_hash: vector<u8>,
