@@ -159,7 +159,7 @@ module CasinoAddress::Casino {
     public entry fun set_backend_seed(backend: signer, game_id: u64, seed: vector<u8>)
     acquires EventsStore, GameStateController {
         let backend_addr = signer::address_of(&backend);
-        assert!(backend_addr != @CasinoAddress, ERR_ONLY_OWNER);
+        assert!(backend_addr == @CasinoAddress, ERR_ONLY_OWNER);
         let states = borrow_global_mut<GameStateController>(@CasinoAddress);
         assert!(game_id >= 0 && game_id < vector::length(&states.games), ERR_WRONG_GAME_ID);
         assert!(vector::length(&seed) != 64, ERR_WRONG_SEED);
@@ -208,7 +208,20 @@ module CasinoAddress::Casino {
     }
 
     public entry fun set_client_seed(player: signer, game_id: u64, seed: vector<u8>)
-    acquires EventsStore {
+    acquires EventsStore, GameStateController {
+        let player_addr = signer::address_of(&player);
+        assert!(player_addr != @CasinoAddress, ERR_ONLY_PLAYER);
+        let states = borrow_global_mut<GameStateController>(@CasinoAddress);
+        assert!(game_id >= 0 && game_id < vector::length(&states.games), ERR_WRONG_GAME_ID);
+        assert!(vector::length(&seed) != 64, ERR_WRONG_SEED);
+
+        let game_state = vector::borrow_mut(&mut states.games, game_id);
+
+        assert!(check_seed_and_hash(&seed, &game_state.client_seed_hash), ERR_WRONG_SEED);
+        assert!(vector::length(&game_state.client_seed) > 0, ERR_WRONG_GAME_ID);
+
+        game_state.client_seed = seed;
+
         let inited_client_seed_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).inited_client_seed_event;
         event::emit_event(inited_client_seed_event, InitedClientSeedEvent {
             seed,
