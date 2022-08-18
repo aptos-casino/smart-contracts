@@ -2,12 +2,19 @@ module CasinoAddress::Casino {
     use aptos_std::event;
     use std::signer;
     use std::vector;
+    use aptos_framework::account;
+    use aptos_framework::timestamp;
 
     const GAME_STATE_EMPTY: u8 = 0;
     const GAME_STATE_STARTED: u8 = 1;
     const GAME_STATE_ENDED: u8 = 2;
 
     const ERR_ONLY_OWNER: u64 = 0;
+    const ERR_ONLY_PLAYER: u64 = 1;
+    const ERR_WRONG_PREDICTION: u64 = 2;
+    const ERR_WRONG_BET_AMOUNT: u64 = 3;
+
+    const MIN_BET_AMOUNT: u64 = 1000;
 
     struct StartedGameEvent has drop, store {
         player: address,
@@ -68,6 +75,10 @@ module CasinoAddress::Casino {
         completed_game_event: event::EventHandle<CompletedGameEvent>,
     }
 
+    struct GameStateController has key {
+        games: vector<GameState>
+    }
+
     public entry fun initialize(account: &signer) {
         let sender_address = signer::address_of(account);
         assert!(sender_address == @CasinoAddress, ERR_ONLY_OWNER);
@@ -83,18 +94,41 @@ module CasinoAddress::Casino {
                     completed_game_event: event::new_event_handle<CompletedGameEvent>(account),
                 },
             );
-        }
+        };
+        if (!exists<GameStateController>(sender_address)) {
+            move_to(account, GameStateController {
+                games: vector::empty(),
+            });
+        };
     }
 
     public entry fun start_roll(player: signer, bet_amount: u64, client_seed_hash: vector<u8>, prediction: u8)
-    acquires EventsStore {
-        let creator_addr = signer::address_of(&player);
+    acquires EventsStore, GameStateController {
+        let player_addr = signer::address_of(&player);
+        assert!(player_addr != @CasinoAddress, ERR_ONLY_PLAYER);
+        assert!(prediction >= 2 && prediction <= 96, ERR_WRONG_PREDICTION);
+        assert!(bet_amount >= MIN_BET_AMOUNT, ERR_WRONG_BET_AMOUNT);
+        account::transfer(&player, @CasinoAddress, bet_amount);
+        let state = GameState {
+            player: player_addr,
+            client_seed: vector::empty<u8>(),
+            client_seed_hash,
+            backend_seed: vector::empty<u8>(),
+            backend_seed_hash: vector::empty<u8>(),
+            prediction,
+            lucky_number: 255,
+            bet_amount,
+            payout: 0,
+            game_state: GAME_STATE_STARTED,
+        };
+        let states = borrow_global_mut<GameStateController>(@CasinoAddress);
+        vector::push_back(&mut states.games, state);
         let start_game_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).start_game_event;
         event::emit_event(start_game_event, StartedGameEvent {
-            player: creator_addr,
+            player: player_addr,
             client_seed_hash,
             bet_amount,
-            game_id: 5151,
+            game_id: vector::length(&mut states.games) - 1,
         });
     }
 
@@ -132,15 +166,6 @@ module CasinoAddress::Casino {
         let inited_client_seed_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).inited_client_seed_event;
         event::emit_event(inited_client_seed_event, InitedClientSeedEvent {
             seed,
-            game_id,
-        });
-    }
-
-    public entry fun set_client_seed_hash(backend: signer, game_id: u64, seed_hash: vector<u8>)
-    acquires EventsStore {
-        let inited_client_seed_hashes_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).inited_client_seed_hashes_event;
-        event::emit_event(inited_client_seed_hashes_event, InitedClientSeedHashesEvent {
-            hash: seed_hash,
             game_id,
         });
     }
