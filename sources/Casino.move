@@ -132,13 +132,28 @@ module CasinoAddress::Casino {
         });
     }
 
-    public entry fun get_random_lucky_number(seed1: vector<u8>, seed2: vector<u8>): u8 {
+    public fun get_random_lucky_number(seed1: vector<u8>, seed2: vector<u8>): u8 {
         let seed = vector::empty<u8>();
         vector::append(&mut seed, seed1);
         vector::append(&mut seed, seed2);
         let hash = hash::sha3_256(seed);
-        let lucky_number = vector::borrow(&mut hash, 0) % 101;
-        *lucky_number
+        let lucky_number = *vector::borrow(&mut hash, 0) % 101;
+        lucky_number
+    }
+
+    public fun check_seed_and_hash(seed: &vector<u8>, hash: &vector<u8>): bool {
+        let seed_hash = hash::sha3_256(*seed);
+        if (vector::length(&seed_hash) != vector::length(hash)) {
+            return false;
+        };
+        let i = 0;
+        while (i < vector::length(&seed_hash)) {
+            if (vector::borrow(&seed_hash, i) != vector::borrow(hash, i)) {
+                return false;
+            };
+            i = i + 1;
+        };
+        true
     }
 
     public entry fun set_backend_seed(backend: signer, game_id: u64, seed: vector<u8>)
@@ -150,12 +165,14 @@ module CasinoAddress::Casino {
         assert!(vector::length(&seed) != 64, ERR_WRONG_SEED);
 
         let game_state = vector::borrow_mut(&mut states.games, game_id);
-        let events_store = &mut borrow_global_mut<EventsStore>(@CasinoAddress);
+        let events_store = borrow_global_mut<EventsStore>(@CasinoAddress);
 
+        assert!(check_seed_and_hash(&seed, &game_state.backend_seed_hash), ERR_WRONG_SEED);
         assert!(vector::length(&game_state.backend_seed) > 0, ERR_WRONG_GAME_ID);
         assert!(vector::length(&game_state.client_seed) == 0, ERR_WRONG_GAME_ID);
+
         game_state.backend_seed = seed;
-        let inited_backend_seed_event = events_store.inited_backend_seed_event;
+        let inited_backend_seed_event = &mut events_store.inited_backend_seed_event;
         event::emit_event(inited_backend_seed_event, InitedBackendSeedEvent {
             seed,
             game_id,
@@ -163,12 +180,13 @@ module CasinoAddress::Casino {
 
         game_state.lucky_number = get_random_lucky_number(game_state.client_seed, game_state.backend_seed);
         if (game_state.lucky_number <= game_state.prediction) {
-            game_state.payout = game_state.bet_amount *  98 / (game_state.prediction - 1);
+            assert!(game_state.prediction > 1, ERR_WRONG_PREDICTION);
+            game_state.payout = (game_state.bet_amount * 98) / ((game_state.prediction as u64) - 1);
             account::transfer(&backend, game_state.player, game_state.payout);
         };
         game_state.game_state = GAME_STATE_ENDED;
 
-        let completed_game_event = events_store.completed_game_event;
+        let completed_game_event = &mut events_store.completed_game_event;
         event::emit_event(completed_game_event, CompletedGameEvent {
             lucky_number: game_state.lucky_number,
             payout: game_state.payout,
