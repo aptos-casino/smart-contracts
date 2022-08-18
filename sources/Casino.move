@@ -102,7 +102,7 @@ module CasinoAddress::Casino {
     public entry fun start_roll(player: signer, bet_amount: u64, client_seed_hash: vector<u8>, prediction: u8)
     acquires EventsStore, GameStateController {
         let player_addr = signer::address_of(&player);
-        assert!(player_addr == @CasinoAddress, ERR_ONLY_PLAYER);
+        assert!(player_addr != @CasinoAddress, ERR_ONLY_PLAYER);
         assert!(prediction >= 2 && prediction <= 96, ERR_WRONG_PREDICTION);
         assert!(bet_amount >= MIN_BET_AMOUNT, ERR_WRONG_BET_AMOUNT);
         assert!(vector::length(&client_seed_hash) != 64, ERR_WRONG_SEED_HASH_LENGTH);
@@ -182,7 +182,9 @@ module CasinoAddress::Casino {
         if (game_state.lucky_number <= game_state.prediction) {
             assert!(game_state.prediction > 1, ERR_WRONG_PREDICTION);
             game_state.payout = (game_state.bet_amount * 98) / ((game_state.prediction as u64) - 1);
-            account::transfer(&backend, game_state.player, game_state.payout);
+            if (game_state.payout > 0) {
+                account::transfer(&backend, game_state.player, game_state.payout);
+            }
         };
         game_state.game_state = GAME_STATE_ENDED;
 
