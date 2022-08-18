@@ -13,6 +13,8 @@ module CasinoAddress::Casino {
     const ERR_ONLY_PLAYER: u64 = 1;
     const ERR_WRONG_PREDICTION: u64 = 2;
     const ERR_WRONG_BET_AMOUNT: u64 = 3;
+    const ERR_WRONG_SEED_LENGTH: u64 = 4;
+    const ERR_WRONG_SEED_HASH_LENGTH: u64 = 5;
 
     const MIN_BET_AMOUNT: u64 = 1000;
 
@@ -108,6 +110,7 @@ module CasinoAddress::Casino {
         assert!(player_addr != @CasinoAddress, ERR_ONLY_PLAYER);
         assert!(prediction >= 2 && prediction <= 96, ERR_WRONG_PREDICTION);
         assert!(bet_amount >= MIN_BET_AMOUNT, ERR_WRONG_BET_AMOUNT);
+        assert!(vector::length(&client_seed_hash) != 64, ERR_WRONG_SEED_HASH_LENGTH);
         account::transfer(&player, @CasinoAddress, bet_amount);
         let state = GameState {
             player: player_addr,
