@@ -10,7 +10,7 @@ module CasinoAddress::Casino {
     const ERR_ONLY_OWNER: u64 = 0;
 
     struct StartedGameEvent has drop, store {
-        player: address,
+        player_addr: address,
         client_seed_hash: vector<u8>,
         bet_amount: u64,
         game_id: u64,
@@ -53,7 +53,7 @@ module CasinoAddress::Casino {
         completed_game_event: event::EventHandle<CompletedGameEvent>
     }
 
-    struct GameState has store{
+    struct GameState has store, copy{
         client_seed: vector<u8>,
         client_seed_hash: vector<u8>,
         backend_seed: vector<u8>,
@@ -99,10 +99,10 @@ module CasinoAddress::Casino {
         let roll_num = 0;//todo
         let pay = 0;//todo
 
-        let state = GameState{
+        let state = GameState {
             client_seed: vector::empty(),
             client_seed_hash: client_seed_hash,
-            backend_seed: vector::empty()
+            backend_seed: vector::empty(),
             backend_seed_hash: vector::empty(),
             prediction: prediction,
             lucky_number: roll_num,
@@ -111,77 +111,77 @@ module CasinoAddress::Casino {
             game_state: GAME_STATE_STARTED,
         };
         
-        vector::push_back(states.games, state);
-        let len = vector::length(states.games);
+        vector::push_back(&mut states.games, state);
+        let len = vector::length(&mut states.games);
 
         event::emit_event<StartedGameEvent>(
-            &mut game_events.start_game_event,
+            &mut game_events.started_game_event,
             StartedGameEvent {
-                addr,
+                player_addr: addr,
                 client_seed_hash,
                 bet_amount,
-                len,
+                game_id: len,
             },
         );
     }
 
-    // public fun set_backend_seed(game_id: u64, seed: vector<u8>)
-    // acquires GameEvents, GameStateController {
-    //     let states = borrow_global_mut<GameStateController>(@CasinoAddress);
-    //     let inited_backend_seed_event = &mut borrow_global_mut<GameEvents>(@CasinoAddress).inited_backend_seed_event;
-    //     let state = vector::borrow_mut(&mut states, game_id);
-    //     state.backend_seed = seed;
+    public fun set_backend_seed(game_id: u64, seed: vector<u8>)
+    acquires GameEvents, GameStateController {
+        let states = borrow_global_mut<GameStateController>(@CasinoAddress);
+        let inited_backend_seed_event = &mut borrow_global_mut<GameEvents>(@CasinoAddress).inited_backend_seed_event;
+        let state = vector::borrow_mut(&mut states.games, game_id);
+        state.backend_seed = seed;
 
-    //     event::emit_event(inited_backend_seed_event, InitedBackendSeedEvent {
-    //         seed,
-    //         game_id,
-    //     });
-    // }
+        event::emit_event(inited_backend_seed_event, InitedBackendSeedEvent {
+            seed,
+            game_id,
+        });
+    }
 
-    // public fun set_backend_seed_hash(game_id: u64, seed_hash: vector<u8>)
-    // acquires GameEvents, GameStateController {
-    //     let states = borrow_global_mut<GameStateController>(@CasinoAddress);
-    //     let inited_backend_seed_hashes_event = &mut borrow_global_mut<GameEvents>(@CasinoAddress).inited_backend_seed_hashes_event;
-    //     let state = vector::borrow_mut(&mut states, game_id);
-    //     state.backend_seed_hash = seed_hash;
+    public fun set_backend_seed_hash(game_id: u64, seed_hash: vector<u8>)
+    acquires GameEvents, GameStateController {
+        let states = borrow_global_mut<GameStateController>(@CasinoAddress);
+        let inited_backend_seed_hash_event = &mut borrow_global_mut<GameEvents>(@CasinoAddress).inited_backend_seed_hash_event;
+        let state = vector::borrow_mut(&mut states.games, game_id);
+        state.backend_seed_hash = seed_hash;
 
-    //     event::emit_event(inited_backend_seed_hashes_event, InitedBackendSeedHashesEvent {
-    //         hash: seed_hash,
-    //         game_id,
-    //     });
-    // }
+        event::emit_event(inited_backend_seed_hash_event, InitedBackendSeedHashEvent {
+            hash: seed_hash,
+            game_id,
+        });
+    }
 
-    // public fun set_client_seed(player: signer, game_id: u64, seed: vector<u8>)
-    // acquires GameEvents, GameStateController {
-    //     let states = borrow_global_mut<GameStateController>(@CasinoAddress);
-    //     let inited_client_seed_event = &mut borrow_global_mut<GameEvents>(@CasinoAddress).inited_client_seed_event;
-    //     let state = vector::borrow_mut(&mut states, game_id);
-    //     state.client_seed = seed;
+    public fun set_client_seed(game_id: u64, seed: vector<u8>)
+    acquires GameEvents, GameStateController {
+        let states = borrow_global_mut<GameStateController>(@CasinoAddress);
+        let inited_client_seed_event = &mut borrow_global_mut<GameEvents>(@CasinoAddress).inited_client_seed_event;
+        let state = vector::borrow_mut(&mut states.games, game_id);
+        state.client_seed = seed;
 
-    //     event::emit_event(inited_client_seed_event, InitedClientSeedEvent {
-    //         seed,
-    //         game_id,
-    //     });
-    // }
+        event::emit_event(inited_client_seed_event, InitedClientSeedEvent {
+            seed,
+            game_id,
+        });
+    }
 
-    // public fun set_client_seed_hash(game_id: u64, seed_hash: vector<u8>)
-    // acquires GameEvents, GameStateController {
-    //     let states = borrow_global_mut<GameStateController>(@CasinoAddress);
-    //     let inited_client_seed_hashes_event = &mut borrow_global_mut<GameEvents>(@CasinoAddress).inited_client_seed_hashes_event;
-    //     let state = vector::borrow_mut(&mut states, game_id);
-    //     state.client_seed_hash = seed_hash;
+    public fun set_client_seed_hash(game_id: u64, seed_hash: vector<u8>)
+    acquires GameEvents, GameStateController {
+        let states = borrow_global_mut<GameStateController>(@CasinoAddress);
+        let inited_client_seed_hash_event = &mut borrow_global_mut<GameEvents>(@CasinoAddress).inited_client_seed_hash_event;
+        let state = vector::borrow_mut(&mut states.games, game_id);
+        state.client_seed_hash = seed_hash;
 
-    //     event::emit_event(inited_client_seed_hashes_event, InitedClientSeedHashesEvent {
-    //         hash: seed_hash,
-    //         game_id,
-    //     });
-    // }
+        event::emit_event(inited_client_seed_hash_event, InitedClientSeedHashEvent {
+            hash: seed_hash,
+            game_id,
+        });
+    }
    
-    // public fun get_game_state(game_id: u64): GameState
-    // acquires GameStateController {
-    //     let states = borrow_global_mut<GameStateController>(@CasinoAddress);
+    public fun get_game_state(game_id: u64): GameState
+    acquires GameStateController {
+        let states = borrow_global_mut<GameStateController>(@CasinoAddress);
 
-    //     vector::borrow(&states, game_id)
-    // }
+        *vector::borrow(& states.games, game_id)
+    }
 
 }
