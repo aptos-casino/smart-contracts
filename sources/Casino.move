@@ -144,12 +144,12 @@ module CasinoAddress::Casino {
     public fun check_seed_and_hash(seed: &vector<u8>, hash: &vector<u8>): bool {
         let seed_hash = hash::sha3_256(*seed);
         if (vector::length(&seed_hash) != vector::length(hash)) {
-            return false;
+            return false
         };
         let i = 0;
         while (i < vector::length(&seed_hash)) {
             if (vector::borrow(&seed_hash, i) != vector::borrow(hash, i)) {
-                return false;
+                return false
             };
             i = i + 1;
         };
@@ -162,7 +162,7 @@ module CasinoAddress::Casino {
         assert!(backend_addr == @CasinoAddress, ERR_ONLY_OWNER);
         let states = borrow_global_mut<GameStateController>(@CasinoAddress);
         assert!(game_id >= 0 && game_id < vector::length(&states.games), ERR_WRONG_GAME_ID);
-        assert!(vector::length(&seed) != 64, ERR_WRONG_SEED);
+        assert!(vector::length(&seed) > 0, ERR_WRONG_SEED);
 
         let game_state = vector::borrow_mut(&mut states.games, game_id);
         let events_store = borrow_global_mut<EventsStore>(@CasinoAddress);
@@ -199,7 +199,20 @@ module CasinoAddress::Casino {
     }
 
     public entry fun set_backend_seed_hash(backend: signer, game_id: u64, seed_hash: vector<u8>)
-    acquires EventsStore {
+    acquires EventsStore, GameStateController {
+        let backend_addr = signer::address_of(&backend);
+        assert!(backend_addr == @CasinoAddress, ERR_ONLY_OWNER);
+        let states = borrow_global_mut<GameStateController>(@CasinoAddress);
+        assert!(game_id >= 0 && game_id < vector::length(&states.games), ERR_WRONG_GAME_ID);
+        assert!(vector::length(&seed_hash) != 64, ERR_WRONG_SEED);
+
+        let game_state = vector::borrow_mut(&mut states.games, game_id);
+
+        assert!(vector::length(&game_state.backend_seed) > 0, ERR_WRONG_GAME_ID);
+        assert!(vector::length(&game_state.client_seed) == 0, ERR_WRONG_GAME_ID);
+
+        game_state.backend_seed_hash = seed_hash;
+
         let inited_backend_seed_hashes_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).inited_backend_seed_hashes_event;
         event::emit_event(inited_backend_seed_hashes_event, InitedBackendSeedHashesEvent {
             hash: seed_hash,
@@ -213,7 +226,7 @@ module CasinoAddress::Casino {
         assert!(player_addr != @CasinoAddress, ERR_ONLY_PLAYER);
         let states = borrow_global_mut<GameStateController>(@CasinoAddress);
         assert!(game_id >= 0 && game_id < vector::length(&states.games), ERR_WRONG_GAME_ID);
-        assert!(vector::length(&seed) != 64, ERR_WRONG_SEED);
+        assert!(vector::length(&seed) > 0, ERR_WRONG_SEED);
 
         let game_state = vector::borrow_mut(&mut states.games, game_id);
 
