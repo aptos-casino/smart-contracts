@@ -42,6 +42,8 @@ module CasinoAddress::Casino {
         game_id: u64,
         bet_amount: u64,
         player_addr: address,
+        time: u64,
+        prediction: u64,
     }
 
     struct GameState has drop, store {
@@ -105,6 +107,8 @@ module CasinoAddress::Casino {
             game_id: 123,
             bet_amount: 123,
             player_addr: @0x1234,
+            time: 1515515,
+            prediction: 155,
         });
 
         let inited_backend_seed_event = &mut borrow_global_mut<EventsStore>(@CasinoAddress).inited_backend_seed_event;
