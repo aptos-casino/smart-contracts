@@ -9,6 +9,8 @@ module CasinoAddress::Casino {
 
     const ERR_ONLY_OWNER: u64 = 0;
 
+    const ERR_BACKEND_SEED_CONCURRENCY: u64 = 0;
+
     struct StartedGameEvent has drop, store {
         player_addr: address,
         client_seed_hash: vector<u8>,
@@ -36,7 +38,7 @@ module CasinoAddress::Casino {
         seed: vector<u8>
     }
 
-    struct CompletedGameEvent has drop, store {
+    struct EndedGameEvent has drop, store {
         lucky_number: u64,
         payout: u64,
         game_id: u64,
@@ -50,7 +52,7 @@ module CasinoAddress::Casino {
         inited_client_seed_event: event::EventHandle<InitedClientSeedEvent>,
         inited_backend_seed_hash_event: event::EventHandle<InitedBackendSeedHashEvent>,
         inited_client_seed_hash_event: event::EventHandle<InitedClientSeedHashEvent>,
-        completed_game_event: event::EventHandle<CompletedGameEvent>
+        ended_game_event: event::EventHandle<EndedGameEvent>
     }
 
     struct GameState has store, copy{
@@ -80,7 +82,7 @@ module CasinoAddress::Casino {
                 inited_client_seed_event: event::new_event_handle<InitedClientSeedEvent>(&account),
                 inited_backend_seed_hash_event: event::new_event_handle<InitedBackendSeedHashEvent>(&account),
                 inited_client_seed_hash_event: event::new_event_handle<InitedClientSeedHashEvent>(&account),
-                completed_game_event: event::new_event_handle<CompletedGameEvent>(&account),
+                ended_game_event: event::new_event_handle<EndedGameEvent>(&account),
             });
         };
 
@@ -104,9 +106,9 @@ module CasinoAddress::Casino {
             client_seed_hash: client_seed_hash,
             backend_seed: vector::empty(),
             backend_seed_hash: vector::empty(),
-            prediction: prediction,
+            prediction,
             lucky_number: roll_num,
-            bet_amount: bet_amount,
+            bet_amount,
             payout: pay,
             game_state: GAME_STATE_STARTED,
         };
@@ -175,6 +177,35 @@ module CasinoAddress::Casino {
             hash: seed_hash,
             game_id,
         });
+    }
+
+    public entry fun end_game(game_id: u64)
+    acquires GameStateController {
+        let states = borrow_global_mut<GameStateController>(@CasinoAddress);
+        let state = vector::borrow_mut(&mut states.games, game_id);
+//проверяет что это именно овнер подписал транзу (у бека должен быть приватник)
+        assert!(state.backend_seed == state.backend_seed_hash, ERR_BACKEND_SEED_CONCURRENCY);
+        state.lucky_number = (state.backend_seed - state.client_seed) / 100;
+
+        if (state.prediction <= state.lucky_number) {
+            state.payout = 98 / (state.bet_amount - 1);
+        }
+
+        state.game_state = GAME_STATE_ENDED;
+
+        let addr = @CasinoAddress;
+        let game_events = borrow_global_mut<GameEvents>(addr);
+
+        event::emit_event<EndedGameEvent>(
+            &mut game_events.ended_game_event,
+            EndedGameEvent {
+                lucky_number: state.lucky_number,
+                payout: state.payout,
+                game_id,
+                bet_amount: state.bet_amount,
+                player_addr: addr,
+            },
+        );
     }
    
     public fun get_game_state(game_id: u64): GameState
