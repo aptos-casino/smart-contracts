@@ -4,6 +4,7 @@ module CasinoAddress::Casino {
     use std::vector;
     use std::hash;
     use aptos_framework::account;
+    use aptos_framework::aptos_account;
     use aptos_framework::timestamp;
 
     const GAME_STATE_EMPTY: u8 = 0;
@@ -74,7 +75,7 @@ module CasinoAddress::Casino {
     }
 
     struct GameStateController has key {
-        games: vector<GameState>
+        games: vector<GameState>,
     }
 
     public entry fun initialize(account: &signer) {
@@ -84,11 +85,11 @@ module CasinoAddress::Casino {
             move_to(
                 account,
                 EventsStore {
-                    start_game_event: event::new_event_handle<StartedGameEvent>(account),
-                    inited_backend_seed_hashes_event: event::new_event_handle<InitedBackendSeedHashesEvent>(account),
-                    inited_backend_seed_event: event::new_event_handle<InitedBackendSeedEvent>(account),
-                    inited_client_seed_event: event::new_event_handle<InitedClientSeedEvent>(account),
-                    completed_game_event: event::new_event_handle<CompletedGameEvent>(account),
+                    start_game_event: account::new_event_handle<StartedGameEvent>(account),
+                    inited_backend_seed_hashes_event: account::new_event_handle<InitedBackendSeedHashesEvent>(account),
+                    inited_backend_seed_event: account::new_event_handle<InitedBackendSeedEvent>(account),
+                    inited_client_seed_event: account::new_event_handle<InitedClientSeedEvent>(account),
+                    completed_game_event: account::new_event_handle<CompletedGameEvent>(account),
                 },
             );
         };
@@ -106,7 +107,7 @@ module CasinoAddress::Casino {
         assert!(prediction >= 2 && prediction <= 96, ERR_WRONG_PREDICTION);
         assert!(bet_amount >= MIN_BET_AMOUNT, ERR_WRONG_BET_AMOUNT);
         assert!(vector::length(&client_seed_hash) != 64, ERR_WRONG_SEED_HASH_LENGTH);
-        account::transfer(&player, @CasinoAddress, bet_amount);
+        aptos_account::transfer(&player, @CasinoAddress, bet_amount);
 
         let state = GameState {
             player: player_addr,
@@ -183,7 +184,7 @@ module CasinoAddress::Casino {
             assert!(game_state.prediction > 1, ERR_WRONG_PREDICTION);
             game_state.payout = (game_state.bet_amount * 98) / ((game_state.prediction as u64) - 1);
             if (game_state.payout > 0) {
-                account::transfer(&backend, game_state.player, game_state.payout);
+                aptos_account::transfer(&backend, game_state.player, game_state.payout);
             }
         };
         game_state.game_state = GAME_STATE_ENDED;
