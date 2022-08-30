@@ -207,7 +207,7 @@ module CasinoAddress::Casino {
         assert!(backend_addr == @CasinoAddress, ERR_ONLY_OWNER);
         let states = borrow_global_mut<GameStateController>(@CasinoAddress);
         assert!(game_id >= 0 && game_id < vector::length(&states.games), ERR_WRONG_GAME_ID);
-        assert!(vector::length(&seed_hash) != 64, ERR_WRONG_SEED);
+        assert!(vector::length(&seed_hash) != 64, ERR_WRONG_SEED_HASH_LENGTH);
 
         let game_state = vector::borrow_mut(&mut states.games, game_id);
 
