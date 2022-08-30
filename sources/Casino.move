@@ -211,7 +211,7 @@ module CasinoAddress::Casino {
 
         let game_state = vector::borrow_mut(&mut states.games, game_id);
 
-        assert!(vector::length(&game_state.backend_seed) > 0, ERR_WRONG_GAME_ID);
+        assert!(vector::length(&game_state.backend_seed) == 0, ERR_WRONG_GAME_ID);
         assert!(vector::length(&game_state.client_seed) == 0, ERR_WRONG_GAME_ID);
 
         game_state.backend_seed_hash = seed_hash;

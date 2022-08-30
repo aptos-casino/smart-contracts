@@ -18,7 +18,7 @@ aptos move run --profile alice --function-id <casino_address_here>::Casino::init
 
 ```
 example:
-export CasinoAddress=7db432e54884c7c2eb35f1a49cbac508e7505277f23d6cf2fa4b7925e59a995b
+export CasinoAddress=fd1bfbe6be0108028a219543d29b27b76137fe037de9d53df0c78f9266b92be8
 aptos move compile --package-dir . --named-addresses CasinoAddress=$CasinoAddress
 aptos move publish --profile alice  --named-addresses CasinoAddress=$CasinoAddress
 aptos move run --profile alice --function-id $CasinoAddress::Casino::initialize
