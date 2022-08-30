@@ -106,7 +106,7 @@ module CasinoAddress::Casino {
         assert!(player_addr != @CasinoAddress, ERR_ONLY_PLAYER);
         assert!(prediction >= 2 && prediction <= 96, ERR_WRONG_PREDICTION);
         assert!(bet_amount >= MIN_BET_AMOUNT, ERR_WRONG_BET_AMOUNT);
-        assert!(vector::length(&client_seed_hash) != 64, ERR_WRONG_SEED_HASH_LENGTH);
+        assert!(vector::length(&client_seed_hash) > 0, ERR_WRONG_SEED_HASH_LENGTH);
         aptos_account::transfer(&player, @CasinoAddress, bet_amount);
 
         let state = GameState {
@@ -169,8 +169,8 @@ module CasinoAddress::Casino {
         let events_store = borrow_global_mut<EventsStore>(@CasinoAddress);
 
         assert!(check_seed_and_hash(&seed, &game_state.backend_seed_hash), ERR_WRONG_SEED);
-        assert!(vector::length(&game_state.backend_seed) > 0, ERR_WRONG_GAME_ID);
-        assert!(vector::length(&game_state.client_seed) == 0, ERR_WRONG_GAME_ID);
+        assert!(vector::length(&game_state.backend_seed) == 0, ERR_WRONG_GAME_ID);
+        assert!(vector::length(&game_state.client_seed) > 0, ERR_WRONG_GAME_ID);
 
         game_state.backend_seed = seed;
         let inited_backend_seed_event = &mut events_store.inited_backend_seed_event;
@@ -207,7 +207,7 @@ module CasinoAddress::Casino {
         assert!(backend_addr == @CasinoAddress, ERR_ONLY_OWNER);
         let states = borrow_global_mut<GameStateController>(@CasinoAddress);
         assert!(game_id >= 0 && game_id < vector::length(&states.games), ERR_WRONG_GAME_ID);
-        assert!(vector::length(&seed_hash) != 64, ERR_WRONG_SEED_HASH_LENGTH);
+        assert!(vector::length(&seed_hash) > 0, ERR_WRONG_SEED_HASH_LENGTH);
 
         let game_state = vector::borrow_mut(&mut states.games, game_id);
 
@@ -234,7 +234,7 @@ module CasinoAddress::Casino {
         let game_state = vector::borrow_mut(&mut states.games, game_id);
 
         assert!(check_seed_and_hash(&seed, &game_state.client_seed_hash), ERR_WRONG_SEED);
-        assert!(vector::length(&game_state.client_seed) > 0, ERR_WRONG_GAME_ID);
+        assert!(vector::length(&game_state.client_seed) == 0, ERR_WRONG_GAME_ID);
 
         game_state.client_seed = seed;
 
