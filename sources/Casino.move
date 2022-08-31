@@ -19,7 +19,7 @@ module CasinoAddress::Casino {
     const ERR_WRONG_SEED_HASH_LENGTH: u64 = 5;
     const ERR_WRONG_GAME_ID: u64 = 6;
 
-    const MIN_BET_AMOUNT: u64 = 3;
+    const MIN_BET_AMOUNT: u64 = 100;
 
     struct StartedGameEvent has drop, store {
         player: address,
